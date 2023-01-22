@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 
 import static com.restaurant.management.restaurantmanagement.RestaurantManagementApplication.getJwt;
 import static com.restaurant.management.restaurantmanagement.data.validation.UsersValidation.*;
@@ -123,6 +124,26 @@ public record UsersController(UsersService usersService)
                     }
                 }
                 else return new ResponseDto<>(response , Response.INVALID_REQUEST);
+            }
+            else return new ResponseDto<>(response , Response.ACCESS_DENIED);
+        }
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
+
+    @PostMapping(value = "/get-all",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseDto<List<UsersDto>> search(final HttpServletResponse response , @CookieValue(name = "token") final String token)
+    {
+        final Users userLogged = tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            if (userLogged.getRole().equals(Roles.ADMIN))
+            {
+                final List<Users> users = usersService.repository().findAll();
+                final List<UsersDto> usersDto = UsersMapper.toUsersDto(users);
+
+                return new ResponseDto<>(response , usersDto , Response.SUCCESSFULLY);
             }
             else return new ResponseDto<>(response , Response.ACCESS_DENIED);
         }
