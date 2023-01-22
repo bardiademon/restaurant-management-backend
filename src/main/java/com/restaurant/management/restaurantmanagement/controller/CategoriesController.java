@@ -34,7 +34,7 @@ public record CategoriesController(CategoriesService categoriesService , UsersSe
         {
             if (userLogged.getRole().equals(Roles.ADMIN))
             {
-                if (CategoriesValidation.addValidation(categoryName) || userLogged.getRole().equals(Roles.USER))
+                if (CategoriesValidation.nameValidation(categoryName) || userLogged.getRole().equals(Roles.USER))
                 {
                     if (categoriesService.find(categoryName) == null)
                     {
@@ -64,6 +64,37 @@ public record CategoriesController(CategoriesService categoriesService , UsersSe
             {
                 final List<Categories> categories = categoriesService.repository().findAll();
                 return new ResponseDto<>(response , CategoriesMapper.toList(categories) , Response.SUCCESSFULLY);
+            }
+            else return new ResponseDto<>(response , Response.ACCESS_DENIED);
+        }
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
+
+
+    @RequestMapping(
+            value = "/{CATEGORY_NAME}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method = RequestMethod.DELETE
+    )
+    @ResponseBody
+    public ResponseDto<?> remove(final HttpServletResponse response , @PathVariable("CATEGORY_NAME") final String categoryName , @CookieValue(name = "token") final String token)
+    {
+        final Users userLogged = UsersValidation.tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            if (userLogged.getRole().equals(Roles.ADMIN) || userLogged.getRole().equals(Roles.USER))
+            {
+                if (CategoriesValidation.nameValidation(categoryName))
+                {
+                    final Categories category = categoriesService.find(categoryName);
+                    if (category != null)
+                    {
+                        categoriesService.repository().delete(category);
+                        return new ResponseDto<>(response , Response.SUCCESSFULLY);
+                    }
+                    else return new ResponseDto<>(response , Response.NOT_FOUND);
+                }
+                else return new ResponseDto<>(response , Response.INVALID_REQUEST);
             }
             else return new ResponseDto<>(response , Response.ACCESS_DENIED);
         }

@@ -7,7 +7,7 @@ public class CategoriesValidation
 
     }
 
-    public static boolean addValidation(final String categoryName)
+    public static boolean nameValidation(final String categoryName)
     {
         return (categoryName != null && !categoryName.isEmpty() && categoryName.length() <= 500);
     }
