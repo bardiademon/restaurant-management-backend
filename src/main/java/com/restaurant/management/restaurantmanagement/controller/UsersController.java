@@ -44,7 +44,11 @@ public record UsersController(UsersService usersService)
             {
                 final JWTWithUserId jwt = getJwt();
                 final String token = jwt.getToken(user.getId());
-                response.addCookie(new Cookie("token" , token));
+
+                final Cookie cookie = new Cookie("token" , token);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+
                 return new ResponseDto<>(response , token , Response.SUCCESSFULLY);
             }
         }
