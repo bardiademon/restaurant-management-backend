@@ -77,6 +77,31 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
 
+    @PostMapping(value = "/search",
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    public ResponseDto<List<FoodsDto>> search(final HttpServletResponse response , @RequestParam("name") final String name , @CookieValue(name = "token") final String token)
+    {
+        final Users userLogged = UsersValidation.tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            if (userLogged.getRole().equals(Roles.ADMIN) || userLogged.getRole().equals(Roles.USER))
+            {
+                if (FoodsValidation.searchValidation(name))
+                {
+                    final List<Foods> search = foodsService.search(name);
+                    final List<FoodsDto> foods = FoodsMapper.toFoodsDto(search);
+                    return new ResponseDto<>(response , foods , Response.SUCCESSFULLY);
+                }
+                else return new ResponseDto<>(response , Response.INVALID_REQUEST);
+            }
+            else return new ResponseDto<>(response , Response.ACCESS_DENIED);
+        }
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
+
     @RequestMapping(value = "/delete/{FOOD_ID}",
             produces = MediaType.APPLICATION_JSON_VALUE,
             method = RequestMethod.DELETE

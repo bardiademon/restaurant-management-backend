@@ -18,6 +18,11 @@ public final class FoodsValidation
         );
     }
 
+    public static boolean searchValidation(final String name)
+    {
+        return (name != null && !name.isEmpty());
+    }
+
     public static boolean updateValidation(final UpdateFoodDto updateFoodDto)
     {
         return (updateFoodDto != null && updateFoodDto.id() > 0);

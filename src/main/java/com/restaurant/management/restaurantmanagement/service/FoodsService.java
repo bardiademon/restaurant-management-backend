@@ -7,6 +7,8 @@ import com.restaurant.management.restaurantmanagement.data.repository.FoodsRepos
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public record FoodsService(FoodsRepository repository)
 {
@@ -30,5 +32,10 @@ public record FoodsService(FoodsRepository repository)
             food.setName(updateFoodDto.name());
 
         return repository.save(food);
+    }
+
+    public List<Foods> search(final String name)
+    {
+        return repository.search(String.format("%%%s%%" , name));
     }
 }
