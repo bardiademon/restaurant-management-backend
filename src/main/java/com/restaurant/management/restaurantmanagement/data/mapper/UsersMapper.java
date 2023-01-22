@@ -1,6 +1,7 @@
 package com.restaurant.management.restaurantmanagement.data.mapper;
 
 import com.restaurant.management.restaurantmanagement.data.dto.RegisterDto;
+import com.restaurant.management.restaurantmanagement.data.dto.UpdateDto;
 import com.restaurant.management.restaurantmanagement.data.dto.UsersDto;
 import com.restaurant.management.restaurantmanagement.data.entity.Users;
 import com.restaurant.management.restaurantmanagement.data.enums.Roles;
@@ -36,6 +37,11 @@ public final class UsersMapper
     public static RegisterDto toRegisterDto(final String name , final String username , final String password , final String phone , final String address , final String roleStr , final MultipartFile profilePicture)
     {
         return new RegisterDto(name , username , password , phone , address , roleStr , profilePicture);
+    }
+
+    public static UpdateDto toUpdateDto(final String name , final String username , final String password , final String phone , final String address , final MultipartFile profilePicture)
+    {
+        return new UpdateDto(name , username , password , phone , address , profilePicture);
     }
 }
 

@@ -1,9 +1,6 @@
 package com.restaurant.management.restaurantmanagement.controller;
 
-import com.restaurant.management.restaurantmanagement.data.dto.RegisterDto;
-import com.restaurant.management.restaurantmanagement.data.dto.ResponseDto;
-import com.restaurant.management.restaurantmanagement.data.dto.LoginDto;
-import com.restaurant.management.restaurantmanagement.data.dto.UsersDto;
+import com.restaurant.management.restaurantmanagement.data.dto.*;
 import com.restaurant.management.restaurantmanagement.data.entity.Users;
 import com.restaurant.management.restaurantmanagement.data.enums.Response;
 import com.restaurant.management.restaurantmanagement.data.enums.Roles;
@@ -21,7 +18,7 @@ import static com.restaurant.management.restaurantmanagement.RestaurantManagemen
 import static com.restaurant.management.restaurantmanagement.data.validation.UsersValidation.*;
 
 @RestController
-@RequestMapping(value = "/users", method = {RequestMethod.POST , RequestMethod.GET})
+@RequestMapping(value = "/users", method = {RequestMethod.POST , RequestMethod.GET , RequestMethod.PUT})
 public record UsersController(UsersService usersService)
 {
 
@@ -56,10 +53,15 @@ public record UsersController(UsersService usersService)
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseDto<UsersDto> register
-            (final HttpServletResponse response , @RequestParam final String name ,
-             @RequestParam(required = false) final String username , final @RequestParam(required = false) String password ,
-             final @RequestParam(required = false) String phone , final @RequestParam(required = false) String address ,
-             @RequestParam(value = "profile_picture") final MultipartFile profilePicture , @RequestParam(name = "role") final String roleStr , @CookieValue(name = "token") final String token)
+            (final HttpServletResponse response ,
+             @RequestParam final String name ,
+             @RequestParam final String username ,
+             @RequestParam final String password ,
+             @RequestParam final String phone ,
+             @RequestParam final String address ,
+             @RequestParam(value = "profile_picture") final MultipartFile profilePicture ,
+             @RequestParam(name = "role") final String roleStr ,
+             @CookieValue(name = "token") final String token)
     {
         final Users userLogged = tokenValidation(token , usersService);
         if (userLogged != null)
@@ -114,6 +116,40 @@ public record UsersController(UsersService usersService)
                 else return new ResponseDto<>(response , Response.INVALID_REQUEST);
             }
             else return new ResponseDto<>(response , Response.ACCESS_DENIED);
+        }
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
+
+    @RequestMapping(value = "/update",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE, method = RequestMethod.PUT)
+    @ResponseBody
+    public ResponseDto<UsersDto> update
+            (final HttpServletResponse response ,
+             @RequestParam(required = false) final String name ,
+             @RequestParam(required = false) final String username ,
+             @RequestParam(required = false) final String password ,
+             @RequestParam(required = false) final String phone ,
+             @RequestParam(required = false) final String address ,
+             @RequestParam(value = "profile_picture", required = false) final MultipartFile profilePicture ,
+             @CookieValue(name = "token") final String token)
+    {
+        final Users userLogged = tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            final UpdateDto updateDto = UsersMapper.toUpdateDto(name , username , password , phone , address , profilePicture);
+
+            if (updateDto.username() != null && !updateDto.username().isEmpty())
+            {
+                final Users userByUsername = usersService.findUser(updateDto.username());
+                if (userByUsername != null)
+                {
+                    return new ResponseDto<>(response , Response.USERNAME_IS_EXISTS);
+                }
+            }
+
+            final Users update = usersService.update(userLogged , updateDto);
+            return new ResponseDto<>(response , UsersMapper.toUserDto(update) , Response.SUCCESSFULLY);
         }
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
