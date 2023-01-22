@@ -7,6 +7,7 @@ public enum Response
     INVALID_LOGIN_INFO(HttpServletResponse.SC_BAD_REQUEST),
     INVALID_REQUEST(HttpServletResponse.SC_BAD_REQUEST),
     FOUND(HttpServletResponse.SC_BAD_REQUEST),
+    NOT_FOUND_CATEGORY(HttpServletResponse.SC_BAD_REQUEST),
     USERNAME_IS_EXISTS(HttpServletResponse.SC_BAD_REQUEST),
     ACCESS_DENIED(HttpServletResponse.SC_BAD_REQUEST),
     SERVER_ERROR(HttpServletResponse.SC_INTERNAL_SERVER_ERROR),

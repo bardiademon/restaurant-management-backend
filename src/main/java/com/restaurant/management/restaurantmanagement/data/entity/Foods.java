@@ -21,8 +21,9 @@ public final class Foods
     @Column(nullable = false)
     private int price = 0;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    private List<Categories> categories;
+    @ManyToOne
+    @JoinColumn(name = "category_id", referencedColumnName = "id")
+    private Categories category;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
@@ -62,14 +63,14 @@ public final class Foods
         this.price = price;
     }
 
-    public List<Categories> getCategories()
+    public Categories getCategory()
     {
-        return categories;
+        return category;
     }
 
-    public void setCategories(List<Categories> categories)
+    public void setCategory(Categories category)
     {
-        this.categories = categories;
+        this.category = category;
     }
 
     public LocalDateTime getCreatedAt()
