@@ -53,6 +53,7 @@ public record UsersService(UsersRepository repository)
             catch (IOException e)
             {
                 e.printStackTrace();
+                return null;
             }
         }
 

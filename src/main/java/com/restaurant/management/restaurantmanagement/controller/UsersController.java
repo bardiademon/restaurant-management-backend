@@ -66,7 +66,11 @@ public record UsersController(UsersService usersService)
             if (usersService.findUser(registerDto.username()) == null)
             {
                 final Users user = usersService.addNewUser(UsersMapper.toUsers(registerDto) , registerDto.profilePicture());
-                return new ResponseDto<>(response , UsersMapper.toUserDto(user) , Response.SUCCESSFULLY);
+                if (user != null)
+                {
+                    return new ResponseDto<>(response , UsersMapper.toUserDto(user) , Response.SUCCESSFULLY);
+                }
+                else return new ResponseDto<>(response , Response.SERVER_ERROR);
             }
             else return new ResponseDto<>(response , Response.USERNAME_IS_EXISTS);
         }
