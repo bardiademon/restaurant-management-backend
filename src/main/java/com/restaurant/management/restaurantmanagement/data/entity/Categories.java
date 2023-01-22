@@ -14,7 +14,7 @@ public final class Categories
     @Column(nullable = false, unique = true)
     private long id;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, unique = true, length = 500)
     private String name;
 
     @Column(name = "created_at", nullable = false, updatable = false)
