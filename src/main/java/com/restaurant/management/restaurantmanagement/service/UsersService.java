@@ -2,6 +2,7 @@ package com.restaurant.management.restaurantmanagement.service;
 
 import com.restaurant.management.restaurantmanagement.data.dto.UpdateDto;
 import com.restaurant.management.restaurantmanagement.data.entity.Users;
+import com.restaurant.management.restaurantmanagement.data.model.GetProfilePictureResult;
 import com.restaurant.management.restaurantmanagement.data.repository.UsersRepository;
 import com.restaurant.management.restaurantmanagement.util.Path;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,5 +110,27 @@ public record UsersService(UsersRepository repository)
         }
 
         return repository.save(userLogged);
+    }
+
+    public GetProfilePictureResult getProfileImage(String profilePictureName)
+    {
+        if (profilePictureName != null && !profilePictureName.isEmpty())
+        {
+            final File file = new File(Path.PROFILE_PICTURE + File.separator + profilePictureName);
+            if (file.exists())
+            {
+                //  2edf8332-8428-4804-9184-9a9d1f596603.image-jpeg.FdrNPgGWIAQKGur.jpg
+
+                profilePictureName = profilePictureName.substring(profilePictureName.indexOf(".") + 1);
+
+                final int pintIndex = profilePictureName.indexOf(".");
+                final String contentType = profilePictureName.substring(0 , pintIndex);
+                final String filename = profilePictureName.substring(pintIndex + 1);
+
+                return new GetProfilePictureResult(file , filename , contentType);
+            }
+        }
+
+        return null;
     }
 }

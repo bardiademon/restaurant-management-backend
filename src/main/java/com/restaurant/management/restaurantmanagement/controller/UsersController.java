@@ -5,6 +5,7 @@ import com.restaurant.management.restaurantmanagement.data.entity.Users;
 import com.restaurant.management.restaurantmanagement.data.enums.Response;
 import com.restaurant.management.restaurantmanagement.data.enums.Roles;
 import com.restaurant.management.restaurantmanagement.data.mapper.UsersMapper;
+import com.restaurant.management.restaurantmanagement.data.model.GetProfilePictureResult;
 import com.restaurant.management.restaurantmanagement.service.UsersService;
 import com.restaurant.management.restaurantmanagement.util.JWTWithUserId;
 import jakarta.servlet.http.Cookie;
@@ -13,6 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
 
 import static com.restaurant.management.restaurantmanagement.RestaurantManagementApplication.getJwt;
 import static com.restaurant.management.restaurantmanagement.data.validation.UsersValidation.*;
@@ -99,11 +103,12 @@ public record UsersController(UsersService usersService)
         final Users userLogged = tokenValidation(token , usersService);
         if (userLogged != null)
         {
-            if (userLogged.getRole().equals(Roles.ADMIN))
+            final Users userByUsername = usersService.findUser(username);
+
+            if (userLogged.getRole().equals(Roles.ADMIN) || (userByUsername != null && userByUsername.getUsername().equals(userLogged.getUsername())))
             {
                 if (searchValidation(username))
                 {
-                    final Users userByUsername = usersService.findUser(username);
                     if (userByUsername != null)
                     {
                         return new ResponseDto<>(response , UsersMapper.toUserDto(userByUsername) , Response.SUCCESSFULLY);
@@ -152,5 +157,41 @@ public record UsersController(UsersService usersService)
             return new ResponseDto<>(response , UsersMapper.toUserDto(update) , Response.SUCCESSFULLY);
         }
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
+
+    @RequestMapping(value = "/get-image/{USERNAME}",
+            produces = MediaType.IMAGE_JPEG_VALUE, method = RequestMethod.GET)
+    @ResponseBody
+    public byte[] getImage(final HttpServletResponse response , @PathVariable(value = "USERNAME") final String username , @CookieValue(name = "token") final String token)
+    {
+        final Users userLogged = tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            if (userLogged.getRole().equals(Roles.ADMIN))
+            {
+                if (getImageValidation(username))
+                {
+                    final Users user = usersService.findUser(username);
+
+                    final GetProfilePictureResult profileImage = usersService.getProfileImage(user.getProfilePicture());
+                    if (profileImage != null)
+                    {
+                        response.setHeader("Content-Type" , profileImage.contentType());
+                        response.setHeader("Content-Disposition" , String.format("form-data; name=\"%s\"" , profileImage.filename()));
+                        response.setHeader("Content-Length" , String.valueOf(profileImage.profilePicture().length()));
+
+                        try
+                        {
+                            return Files.readAllBytes(profileImage.profilePicture().toPath());
+                        }
+                        catch (IOException ignored)
+                        {
+                        }
+                    }
+
+                }
+            }
+        }
+        return null;
     }
 }

@@ -55,4 +55,9 @@ public class UsersValidation
 
         return null;
     }
+
+    public static boolean getImageValidation(final String username)
+    {
+        return (username != null && !username.isEmpty() && username.length() <= 50);
+    }
 }
