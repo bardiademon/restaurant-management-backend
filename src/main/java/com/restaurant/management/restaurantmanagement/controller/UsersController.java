@@ -6,6 +6,7 @@ import com.restaurant.management.restaurantmanagement.data.dto.LoginDto;
 import com.restaurant.management.restaurantmanagement.data.dto.UsersDto;
 import com.restaurant.management.restaurantmanagement.data.entity.Users;
 import com.restaurant.management.restaurantmanagement.data.enums.Response;
+import com.restaurant.management.restaurantmanagement.data.enums.Roles;
 import com.restaurant.management.restaurantmanagement.data.mapper.UsersMapper;
 import com.restaurant.management.restaurantmanagement.service.UsersService;
 import com.restaurant.management.restaurantmanagement.util.JWTWithUserId;
@@ -58,24 +59,33 @@ public record UsersController(UsersService usersService)
             (final HttpServletResponse response , @RequestParam final String name ,
              @RequestParam(required = false) final String username , final @RequestParam(required = false) String password ,
              final @RequestParam(required = false) String phone , final @RequestParam(required = false) String address ,
-             @RequestParam(value = "profile_picture") final MultipartFile profilePicture)
+             @RequestParam(value = "profile_picture") final MultipartFile profilePicture , @RequestParam(name = "role") final String roleStr , @CookieValue(name = "token") final String token)
     {
-        final RegisterDto registerDto = UsersMapper.toRegisterDto(name , username , password , phone , address , profilePicture);
-        if (registerValidation(registerDto))
+        final Users userLogged = tokenValidation(token , usersService);
+        if (userLogged != null)
         {
-            if (usersService.findUser(registerDto.username()) == null)
+            if (userLogged.getRole().equals(Roles.ADMIN))
             {
-                final Users user = usersService.addNewUser(UsersMapper.toUsers(registerDto) , registerDto.profilePicture());
-                if (user != null)
+                final RegisterDto registerDto = UsersMapper.toRegisterDto(name , username , password , phone , address , roleStr , profilePicture);
+                if (registerValidation(registerDto))
                 {
-                    return new ResponseDto<>(response , UsersMapper.toUserDto(user) , Response.SUCCESSFULLY);
+                    if (usersService.findUser(registerDto.username()) == null)
+                    {
+                        final Users user = usersService.addNewUser(UsersMapper.toUsers(registerDto) , registerDto.profilePicture());
+                        if (user != null)
+                        {
+                            return new ResponseDto<>(response , UsersMapper.toUserDto(user) , Response.SUCCESSFULLY);
+                        }
+                        else return new ResponseDto<>(response , Response.SERVER_ERROR);
+                    }
+                    else return new ResponseDto<>(response , Response.USERNAME_IS_EXISTS);
                 }
-                else return new ResponseDto<>(response , Response.SERVER_ERROR);
-            }
-            else return new ResponseDto<>(response , Response.USERNAME_IS_EXISTS);
-        }
 
-        return new ResponseDto<>(response , Response.INVALID_REQUEST);
+                return new ResponseDto<>(response , Response.INVALID_REQUEST);
+            }
+            else return new ResponseDto<>(response , Response.ACCESS_DENIED);
+        }
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
 
     @PostMapping(value = "/search",
@@ -84,11 +94,10 @@ public record UsersController(UsersService usersService)
     @ResponseBody
     public ResponseDto<UsersDto> search(final HttpServletResponse response , @RequestParam(name = "username") final String username , @CookieValue(name = "token") final String token)
     {
-        final Long id = getJwt().getId(token);
-        if (id != null)
+        final Users userLogged = tokenValidation(token , usersService);
+        if (userLogged != null)
         {
-            final Users user = usersService.findUser(id);
-            if (user != null)
+            if (userLogged.getRole().equals(Roles.ADMIN))
             {
                 if (searchValidation(username))
                 {
@@ -104,7 +113,8 @@ public record UsersController(UsersService usersService)
                 }
                 else return new ResponseDto<>(response , Response.INVALID_REQUEST);
             }
+            else return new ResponseDto<>(response , Response.ACCESS_DENIED);
         }
-        return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
 }

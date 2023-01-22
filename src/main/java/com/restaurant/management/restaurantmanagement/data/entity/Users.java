@@ -1,5 +1,6 @@
 package com.restaurant.management.restaurantmanagement.data.entity;
 
+import com.restaurant.management.restaurantmanagement.data.enums.Roles;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -35,6 +36,10 @@ public final class Users
 
     @Column(nullable = false, length = 1000)
     private String address;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Roles role;
 
     public Users()
     {
@@ -113,5 +118,15 @@ public final class Users
     public void setAddress(String address)
     {
         this.address = address;
+    }
+
+    public Roles getRole()
+    {
+        return role;
+    }
+
+    public void setRole(Roles role)
+    {
+        this.role = role;
     }
 }

@@ -1,9 +1,9 @@
 package com.restaurant.management.restaurantmanagement.data.mapper;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.restaurant.management.restaurantmanagement.data.dto.RegisterDto;
 import com.restaurant.management.restaurantmanagement.data.dto.UsersDto;
 import com.restaurant.management.restaurantmanagement.data.entity.Users;
+import com.restaurant.management.restaurantmanagement.data.enums.Roles;
 import org.springframework.web.multipart.MultipartFile;
 
 public final class UsersMapper
@@ -13,10 +13,10 @@ public final class UsersMapper
         final Users user = new Users();
         user.setUsername(registerDto.username());
         user.setPassword(registerDto.password());
+        user.setRole(Roles.valueOf(registerDto.roleStr()));
         user.setAddress(registerDto.address());
         user.setName(registerDto.name());
         user.setPhone(registerDto.phone());
-
         return user;
     }
 
@@ -33,9 +33,9 @@ public final class UsersMapper
         return usersDto;
     }
 
-    public static RegisterDto toRegisterDto(String name , String username , String password , String phone , String address , MultipartFile profilePicture)
+    public static RegisterDto toRegisterDto(final String name , final String username , final String password , final String phone , final String address , final String roleStr , final MultipartFile profilePicture)
     {
-        return new RegisterDto(name , username , password , phone , address , profilePicture);
+        return new RegisterDto(name , username , password , phone , address , roleStr , profilePicture);
     }
 }
 
