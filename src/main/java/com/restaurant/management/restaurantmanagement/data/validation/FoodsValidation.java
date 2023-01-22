@@ -16,4 +16,20 @@ public final class FoodsValidation
                 addFoodDto.price() > 0
         );
     }
+
+    public static Long foodIdValidation(final String foodIdStr)
+    {
+        try
+        {
+            if (foodIdStr != null && !foodIdStr.isEmpty())
+            {
+                return Long.parseLong(foodIdStr);
+            }
+        }
+        catch (Exception ignored)
+        {
+        }
+
+        return null;
+    }
 }

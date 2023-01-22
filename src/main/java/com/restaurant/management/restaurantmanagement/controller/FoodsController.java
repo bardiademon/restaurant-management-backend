@@ -19,9 +19,10 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping(value = "/foods", method = {RequestMethod.POST , RequestMethod.GET , RequestMethod.DELETE})
+@RequestMapping(value = "/foods")
 public record FoodsController(FoodsService foodsService , UsersService usersService ,
                               CategoriesService categoriesService)
 {
@@ -59,6 +60,7 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
     @GetMapping(value = "/list",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @ResponseBody
     public ResponseDto<List<FoodsDto>> list(final HttpServletResponse response , @CookieValue(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
@@ -68,6 +70,37 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
             {
                 final List<Foods> foods = foodsService.repository().findAll();
                 return new ResponseDto<>(response , FoodsMapper.toFoodsDto(foods) , Response.SUCCESSFULLY);
+            }
+            else return new ResponseDto<>(response , Response.ACCESS_DENIED);
+        }
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
+
+    @RequestMapping(value = "/delete/{FOOD_ID}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method = RequestMethod.DELETE
+    )
+    @ResponseBody
+    public ResponseDto<?> delete(final HttpServletResponse response , @PathVariable("FOOD_ID") final String foodIdStr , @CookieValue(name = "token") final String token)
+    {
+        final Users userLogged = UsersValidation.tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            if (userLogged.getRole().equals(Roles.ADMIN) || userLogged.getRole().equals(Roles.USER))
+            {
+                final Long foodId = FoodsValidation.foodIdValidation(foodIdStr);
+                if (foodId != null)
+                {
+                    final Optional<Foods> byId = foodsService.repository().findById(foodId);
+                    if (byId.isPresent())
+                    {
+                        final Foods food = byId.get();
+                        foodsService.repository().delete(food);
+                        return new ResponseDto<>(response , Response.SUCCESSFULLY);
+                    }
+                    else return new ResponseDto<>(response , Response.NOT_FOUND);
+                }
+                else return new ResponseDto<>(response , Response.INVALID_REQUEST);
             }
             else return new ResponseDto<>(response , Response.ACCESS_DENIED);
         }

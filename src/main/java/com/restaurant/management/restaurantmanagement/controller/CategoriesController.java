@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/categories", method = {RequestMethod.POST , RequestMethod.GET , RequestMethod.DELETE})
+@RequestMapping(value = "/categories")
 public record CategoriesController(CategoriesService categoriesService , UsersService usersService)
 {
 
