@@ -21,4 +21,9 @@ public class UsersValidation
                 registerDto.name().length() <= 50 && registerDto.phone().length() <= 20
         );
     }
+
+    public static boolean searchValidation(final String username)
+    {
+        return (username != null && !username.isEmpty());
+    }
 }

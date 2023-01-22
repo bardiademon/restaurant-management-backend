@@ -8,6 +8,8 @@ public enum Response
     INVALID_REQUEST(HttpServletResponse.SC_BAD_REQUEST),
     USERNAME_IS_EXISTS(HttpServletResponse.SC_BAD_REQUEST),
     SERVER_ERROR(HttpServletResponse.SC_INTERNAL_SERVER_ERROR),
+    NOT_LOGGED_IN(HttpServletResponse.SC_INTERNAL_SERVER_ERROR),
+    NOT_FOUND(HttpServletResponse.SC_OK),
     SUCCESSFULLY(HttpServletResponse.SC_OK)
     //
     ;

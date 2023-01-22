@@ -20,7 +20,7 @@ import static com.restaurant.management.restaurantmanagement.RestaurantManagemen
 import static com.restaurant.management.restaurantmanagement.data.validation.UsersValidation.*;
 
 @RestController
-@RequestMapping(value = "/users", method = RequestMethod.POST)
+@RequestMapping(value = "/users", method = {RequestMethod.POST , RequestMethod.GET})
 public record UsersController(UsersService usersService)
 {
 
@@ -54,7 +54,7 @@ public record UsersController(UsersService usersService)
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    private ResponseDto<UsersDto> register
+    public ResponseDto<UsersDto> register
             (final HttpServletResponse response , @RequestParam final String name ,
              @RequestParam(required = false) final String username , final @RequestParam(required = false) String password ,
              final @RequestParam(required = false) String phone , final @RequestParam(required = false) String address ,
@@ -76,5 +76,35 @@ public record UsersController(UsersService usersService)
         }
 
         return new ResponseDto<>(response , Response.INVALID_REQUEST);
+    }
+
+    @PostMapping(value = "/search",
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseDto<UsersDto> search(final HttpServletResponse response , @RequestParam(name = "username") final String username , @CookieValue(name = "token") final String token)
+    {
+        final Long id = getJwt().getId(token);
+        if (id != null)
+        {
+            final Users user = usersService.findUser(id);
+            if (user != null)
+            {
+                if (searchValidation(username))
+                {
+                    final Users userByUsername = usersService.findUser(username);
+                    if (userByUsername != null)
+                    {
+                        return new ResponseDto<>(response , UsersMapper.toUserDto(userByUsername) , Response.SUCCESSFULLY);
+                    }
+                    else
+                    {
+                        return new ResponseDto<>(response , Response.NOT_FOUND);
+                    }
+                }
+                else return new ResponseDto<>(response , Response.INVALID_REQUEST);
+            }
+        }
+        return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
 }

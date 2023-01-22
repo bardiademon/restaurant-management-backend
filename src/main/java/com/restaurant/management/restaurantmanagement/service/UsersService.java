@@ -26,6 +26,11 @@ public record UsersService(UsersRepository repository)
         return repository.findByUsernameAndPassword(username , password);
     }
 
+    public Users findUser(final long id)
+    {
+        return repository.findById(id);
+    }
+
     public Users findUser(final String username)
     {
         return repository.findByUsername(username);
