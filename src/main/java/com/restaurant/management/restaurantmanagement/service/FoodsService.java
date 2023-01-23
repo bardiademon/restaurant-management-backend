@@ -3,7 +3,7 @@ package com.restaurant.management.restaurantmanagement.service;
 import com.restaurant.management.restaurantmanagement.data.dto.UpdateFoodDto;
 import com.restaurant.management.restaurantmanagement.data.entity.Categories;
 import com.restaurant.management.restaurantmanagement.data.entity.Foods;
-import com.restaurant.management.restaurantmanagement.data.model.GetProfilePictureResult;
+import com.restaurant.management.restaurantmanagement.data.model.ImageResult;
 import com.restaurant.management.restaurantmanagement.data.repository.FoodsRepository;
 import com.restaurant.management.restaurantmanagement.util.Path;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,5 +94,27 @@ public record FoodsService(FoodsRepository repository)
     public List<Foods> search(final String name)
     {
         return repository.search(String.format("%%%s%%" , name));
+    }
+
+    public ImageResult getImage(String imageName)
+    {
+        if (imageName != null && !imageName.isEmpty())
+        {
+            final File file = new File(Path.ORDERS_IMAGES + File.separator + imageName);
+            if (file.exists())
+            {
+                //  2edf8332-8428-4804-9184-9a9d1f596603.image-jpeg.FdrNPgGWIAQKGur.jpg
+
+                imageName = imageName.substring(imageName.indexOf(".") + 1);
+
+                final int pintIndex = imageName.indexOf(".");
+                final String contentType = imageName.substring(0 , pintIndex);
+                final String filename = imageName.substring(pintIndex + 1);
+
+                return new ImageResult(file , filename , contentType);
+            }
+        }
+
+        return null;
     }
 }

@@ -5,7 +5,7 @@ import com.restaurant.management.restaurantmanagement.data.entity.Users;
 import com.restaurant.management.restaurantmanagement.data.enums.Response;
 import com.restaurant.management.restaurantmanagement.data.enums.Roles;
 import com.restaurant.management.restaurantmanagement.data.mapper.UsersMapper;
-import com.restaurant.management.restaurantmanagement.data.model.GetProfilePictureResult;
+import com.restaurant.management.restaurantmanagement.data.model.ImageResult;
 import com.restaurant.management.restaurantmanagement.service.UsersService;
 import com.restaurant.management.restaurantmanagement.util.JWTWithUserId;
 import jakarta.servlet.http.Cookie;
@@ -198,7 +198,7 @@ public record UsersController(UsersService usersService)
                 {
                     final Users user = usersService.findUser(username);
 
-                    final GetProfilePictureResult profileImage = usersService.getProfileImage(user.getProfilePicture());
+                    final ImageResult profileImage = usersService.getProfileImage(user.getProfilePicture());
                     if (profileImage != null)
                     {
                         response.setHeader("Content-Type" , profileImage.contentType());

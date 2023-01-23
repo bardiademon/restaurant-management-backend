@@ -10,6 +10,7 @@ import com.restaurant.management.restaurantmanagement.data.entity.Users;
 import com.restaurant.management.restaurantmanagement.data.enums.Response;
 import com.restaurant.management.restaurantmanagement.data.enums.Roles;
 import com.restaurant.management.restaurantmanagement.data.mapper.FoodsMapper;
+import com.restaurant.management.restaurantmanagement.data.model.ImageResult;
 import com.restaurant.management.restaurantmanagement.data.validation.FoodsValidation;
 import com.restaurant.management.restaurantmanagement.data.validation.UsersValidation;
 import com.restaurant.management.restaurantmanagement.service.CategoriesService;
@@ -20,8 +21,12 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
+
+import static com.restaurant.management.restaurantmanagement.data.validation.UsersValidation.tokenValidation;
 
 @RestController
 @RequestMapping(value = "/foods")
@@ -184,5 +189,43 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
             else return new ResponseDto<>(response , Response.ACCESS_DENIED);
         }
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
+
+    @RequestMapping(value = "/get-image/{ORDER_ID}",
+            produces = MediaType.IMAGE_JPEG_VALUE, method = RequestMethod.GET)
+    @ResponseBody
+    public byte[] getImage(final HttpServletResponse response , @PathVariable(value = "ORDER_ID") final String orderIdStr , @CookieValue(name = "token") final String token)
+    {
+        final Users userLogged = tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            if (userLogged.getRole().equals(Roles.ADMIN))
+            {
+                final Long foodId = FoodsValidation.foodIdValidation(orderIdStr);
+                if (foodId != null)
+                {
+                    final Optional<Foods> byId = foodsService.repository().findById(foodId);
+                    if (byId.isPresent())
+                    {
+                        final ImageResult profileImage = foodsService.getImage(byId.get().getOrderImage());
+                        if (profileImage != null)
+                        {
+                            response.setHeader("Content-Type" , profileImage.contentType());
+                            response.setHeader("Content-Disposition" , String.format("form-data; name=\"%s\"" , profileImage.filename()));
+                            response.setHeader("Content-Length" , String.valueOf(profileImage.profilePicture().length()));
+
+                            try
+                            {
+                                return Files.readAllBytes(profileImage.profilePicture().toPath());
+                            }
+                            catch (IOException ignored)
+                            {
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 }
