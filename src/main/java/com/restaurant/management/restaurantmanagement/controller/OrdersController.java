@@ -102,6 +102,29 @@ public record OrdersController(OrderService orderService , UsersService usersSer
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
 
+    @GetMapping(value = "/",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    public ResponseDto<List<OrderDto>> findById(final HttpServletResponse response , @CookieValue("token") final String token)
+    {
+        final Users userLogged = UsersValidation.tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            if (userLogged.getRole().equals(Roles.ADMIN) || userLogged.getRole().equals(Roles.USER))
+            {
+                final List<Orders> orders = orderService.repository().findAll();
+                if (orders.size() > 0)
+                {
+                    return new ResponseDto<>(response , OrdersMapper.toOrdersDto(orders) , Response.SUCCESSFULLY);
+                }
+                else return new ResponseDto<>(response , Response.NOT_FOUND);
+            }
+            else return new ResponseDto<>(response , Response.ACCESS_DENIED);
+        }
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
+
     @GetMapping(value = "/user/{USER_ID}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
