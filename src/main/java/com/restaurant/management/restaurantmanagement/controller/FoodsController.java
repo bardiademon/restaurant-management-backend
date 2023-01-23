@@ -18,6 +18,7 @@ import com.restaurant.management.restaurantmanagement.service.UsersService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,25 +30,36 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
 {
 
     @PostMapping(value = "/add",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseDto<FoodsDto> add(final HttpServletResponse response , @RequestBody final AddFoodDto addFoodDto , @CookieValue(name = "token") final String token)
+    public ResponseDto<FoodsDto> add
+            (final HttpServletResponse response ,
+             @RequestParam("name") final String name ,
+             @RequestParam("price") final int price ,
+             @RequestParam("category") final String categoryStr ,
+             @RequestParam("image") final MultipartFile image ,
+             @CookieValue(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
         {
             if (userLogged.getRole().equals(Roles.ADMIN) || userLogged.getRole().equals(Roles.USER))
             {
+                final AddFoodDto addFoodDto = FoodsMapper.toAddFoodDto(name , price , categoryStr , image);
                 if (FoodsValidation.addValidation(addFoodDto))
                 {
                     final Categories category = categoriesService.find(addFoodDto.category());
                     if (category != null)
                     {
-                        final Foods food = foodsService.addFood(FoodsMapper.toFoods(addFoodDto , category));
-                        final FoodsDto foodsDto = FoodsMapper.toFoodDto(food);
-                        return new ResponseDto<>(response , foodsDto , Response.SUCCESSFULLY);
+                        final Foods food = foodsService.addFood(FoodsMapper.toFoods(addFoodDto , category) , addFoodDto.image());
+                        if (food != null)
+                        {
+                            final FoodsDto foodsDto = FoodsMapper.toFoodDto(food);
+                            return new ResponseDto<>(response , foodsDto , Response.SUCCESSFULLY);
+                        }
+                        else return new ResponseDto<>(response , Response.SERVER_ERROR);
                     }
                     else return new ResponseDto<>(response , Response.NOT_FOUND_CATEGORY);
                 }

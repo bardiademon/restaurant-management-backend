@@ -4,6 +4,7 @@ import com.restaurant.management.restaurantmanagement.data.dto.AddFoodDto;
 import com.restaurant.management.restaurantmanagement.data.dto.FoodsDto;
 import com.restaurant.management.restaurantmanagement.data.entity.Categories;
 import com.restaurant.management.restaurantmanagement.data.entity.Foods;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,5 +41,10 @@ public final class FoodsMapper
         }
 
         return foodsDto;
+    }
+
+    public static AddFoodDto toAddFoodDto(final String name , final int price , final String category , final MultipartFile image)
+    {
+        return new AddFoodDto(name , price , category , image);
     }
 }

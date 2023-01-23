@@ -28,6 +28,9 @@ public final class Foods
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(name = "order_image", length = 1000)
+    private String orderImage;
+
     public Foods()
     {
     }
@@ -75,5 +78,15 @@ public final class Foods
     public LocalDateTime getCreatedAt()
     {
         return createdAt;
+    }
+
+    public String getOrderImage()
+    {
+        return orderImage;
+    }
+
+    public void setOrderImage(String orderImage)
+    {
+        this.orderImage = orderImage;
     }
 }
