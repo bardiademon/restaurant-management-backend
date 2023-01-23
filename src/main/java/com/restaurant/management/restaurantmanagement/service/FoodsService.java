@@ -3,6 +3,7 @@ package com.restaurant.management.restaurantmanagement.service;
 import com.restaurant.management.restaurantmanagement.data.dto.UpdateFoodDto;
 import com.restaurant.management.restaurantmanagement.data.entity.Categories;
 import com.restaurant.management.restaurantmanagement.data.entity.Foods;
+import com.restaurant.management.restaurantmanagement.data.model.GetProfilePictureResult;
 import com.restaurant.management.restaurantmanagement.data.repository.FoodsRepository;
 import com.restaurant.management.restaurantmanagement.util.Path;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,20 @@ public record FoodsService(FoodsRepository repository)
         food.setOrderImage(imageName);
 
         return repository.save(food);
+    }
+
+    public void deleteFood(final Foods food)
+    {
+        if (food.getOrderImage() != null && !food.getOrderImage().isEmpty())
+        {
+            final File file = new File(Path.ORDERS_IMAGES + File.separator + food.getOrderImage());
+            if (file.exists())
+            {
+                file.delete();
+            }
+        }
+
+        repository.delete(food);
     }
 
     private String saveFile(final MultipartFile profilePicture)

@@ -133,7 +133,7 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
                     if (byId.isPresent())
                     {
                         final Foods food = byId.get();
-                        foodsService.repository().delete(food);
+                        foodsService.deleteFood(food);
                         return new ResponseDto<>(response , Response.SUCCESSFULLY);
                     }
                     else return new ResponseDto<>(response , Response.NOT_FOUND);
