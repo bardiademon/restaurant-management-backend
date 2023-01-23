@@ -58,7 +58,7 @@ public record OrdersController(OrderService orderService , UsersService usersSer
 
                                 final Orders save = orderService.repository().save(order);
 
-                                return new ResponseDto<>(response , OrdersMapper.toOrdersDto(save) , Response.SUCCESSFULLY);
+                                return new ResponseDto<>(response , OrdersMapper.toOrderDto(save) , Response.SUCCESSFULLY);
                             }
                             else return new ResponseDto<>(response , Response.FOODS_NOT_FOUND);
                         }
@@ -91,7 +91,35 @@ public record OrdersController(OrderService orderService , UsersService usersSer
                     if (findById.isPresent())
                     {
                         final Orders order = findById.get();
-                        return new ResponseDto<>(response , OrdersMapper.toOrdersDto(order) , Response.SUCCESSFULLY);
+                        return new ResponseDto<>(response , OrdersMapper.toOrderDto(order) , Response.SUCCESSFULLY);
+                    }
+                    else return new ResponseDto<>(response , Response.NOT_FOUND);
+                }
+                else return new ResponseDto<>(response , Response.INVALID_REQUEST);
+            }
+            else return new ResponseDto<>(response , Response.ACCESS_DENIED);
+        }
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
+
+    @GetMapping(value = "/user/{USER_ID}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    public ResponseDto<List<OrderDto>> findByUserId(final HttpServletResponse response , @PathVariable("USER_ID") final String userIdStr , @CookieValue("token") final String token)
+    {
+        final Users userLogged = UsersValidation.tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            if (userLogged.getRole().equals(Roles.ADMIN) || userLogged.getRole().equals(Roles.USER))
+            {
+                final Long userId = OrderValidation.findByIdOrderValidation(userIdStr);
+                if (userId != null)
+                {
+                    final List<Orders> orders = orderService.find(userId);
+                    if (orders != null)
+                    {
+                        return new ResponseDto<>(response , OrdersMapper.toOrdersDto(orders) , Response.SUCCESSFULLY);
                     }
                     else return new ResponseDto<>(response , Response.NOT_FOUND);
                 }
