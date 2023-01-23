@@ -129,4 +129,34 @@ public record OrdersController(OrderService orderService , UsersService usersSer
         }
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
+
+    @RequestMapping(value = "/{ORDER_ID}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            method = RequestMethod.DELETE
+    )
+    @ResponseBody
+    public ResponseDto<?> delete(final HttpServletResponse response , @PathVariable("ORDER_ID") final String orderIdStr , @CookieValue("token") final String token)
+    {
+        final Users userLogged = UsersValidation.tokenValidation(token , usersService);
+        if (userLogged != null)
+        {
+            if (userLogged.getRole().equals(Roles.ADMIN) || userLogged.getRole().equals(Roles.USER))
+            {
+                final Long orderId = OrderValidation.findByIdOrderValidation(orderIdStr);
+                if (orderId != null)
+                {
+                    final Optional<Orders> byId = orderService.repository().findById(orderId);
+                    if (byId.isPresent())
+                    {
+                        orderService.repository().delete(byId.get());
+                        return new ResponseDto<>(response , Response.SUCCESSFULLY);
+                    }
+                    else return new ResponseDto<>(response , Response.NOT_FOUND);
+                }
+                else return new ResponseDto<>(response , Response.INVALID_REQUEST);
+            }
+            else return new ResponseDto<>(response , Response.ACCESS_DENIED);
+        }
+        else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
+    }
 }
