@@ -37,7 +37,6 @@ public record OrdersController(OrderService orderService , UsersService usersSer
         {
             if (userLogged.getRole().equals(Roles.ADMIN) || userLogged.getRole().equals(Roles.USER))
             {
-                System.out.println(addOrdersDto);
                 if (OrderValidation.addOrderValidation(addOrdersDto))
                 {
                     final long userId = addOrdersDto.userId();

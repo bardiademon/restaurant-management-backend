@@ -11,6 +11,6 @@ public final class OrdersMapper
 
     public static OrderDto toOrdersDto(final Orders order)
     {
-        return new OrderDto(UsersMapper.toUserDto(order.getUser()) , FoodsMapper.toFoodsDto(order.getFoods()) , UsersMapper.toUserDto(order.getDelivery()));
+        return new OrderDto(order.getId() , UsersMapper.toUserDto(order.getUser()) , FoodsMapper.toFoodsDto(order.getFoods()) , UsersMapper.toUserDto(order.getDelivery()) , order.getCreatedAt());
     }
 }
