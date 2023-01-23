@@ -8,11 +8,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "user_order")
-public final class Order
+public final class Orders
 {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @ManyToOne
@@ -30,7 +29,7 @@ public final class Order
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    public Order()
+    public Orders()
     {
     }
 

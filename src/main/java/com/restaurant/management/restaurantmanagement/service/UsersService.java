@@ -42,7 +42,7 @@ public record UsersService(UsersRepository repository)
     {
         final String profilePictureName = saveFile(profilePicture);
 
-        if (profilePictureName.equals("ERROR")) return null;
+        if (profilePicture != null && profilePictureName.equals("ERROR")) return null;
 
         user.setProfilePicture(profilePictureName);
 
