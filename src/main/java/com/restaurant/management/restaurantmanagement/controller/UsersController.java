@@ -23,7 +23,7 @@ import static com.restaurant.management.restaurantmanagement.RestaurantManagemen
 import static com.restaurant.management.restaurantmanagement.data.validation.UsersValidation.*;
 
 @RestController
-@RequestMapping(value = "/users", method = {RequestMethod.POST , RequestMethod.GET , RequestMethod.PUT})
+@RequestMapping(value = "/users")
 public record UsersController(UsersService usersService)
 {
 
