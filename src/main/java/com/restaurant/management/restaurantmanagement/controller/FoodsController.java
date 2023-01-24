@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import static com.restaurant.management.restaurantmanagement.data.validation.UsersValidation.tokenValidation;
 
+@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping(value = "/foods")
 public record FoodsController(FoodsService foodsService , UsersService usersService ,
@@ -44,8 +45,8 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
              @RequestParam("name") final String name ,
              @RequestParam("price") final int price ,
              @RequestParam("category") final String categoryStr ,
-             @RequestParam("image") final MultipartFile image ,
-             @CookieValue(name = "token") final String token)
+             @RequestParam(value = "image", required = false) final MultipartFile image ,
+             @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -79,7 +80,7 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseDto<List<FoodsDto>> list(final HttpServletResponse response , @CookieValue(name = "token") final String token)
+    public ResponseDto<List<FoodsDto>> list(final HttpServletResponse response , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -99,7 +100,7 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseDto<List<FoodsDto>> search(final HttpServletResponse response , @RequestParam("name") final String name , @CookieValue(name = "token") final String token)
+    public ResponseDto<List<FoodsDto>> search(final HttpServletResponse response , @RequestParam("name") final String name , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -119,12 +120,13 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
 
+    @CrossOrigin(origins = "http://localhost:8081")
     @RequestMapping(value = "/delete/{FOOD_ID}",
             produces = MediaType.APPLICATION_JSON_VALUE,
             method = RequestMethod.DELETE
     )
     @ResponseBody
-    public ResponseDto<?> delete(final HttpServletResponse response , @PathVariable("FOOD_ID") final String foodIdStr , @CookieValue(name = "token") final String token)
+    public ResponseDto<?> delete(final HttpServletResponse response , @PathVariable("FOOD_ID") final String foodIdStr , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -156,7 +158,7 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
             method = RequestMethod.PUT
     )
     @ResponseBody
-    public ResponseDto<FoodsDto> update(final HttpServletResponse response , @RequestBody final UpdateFoodDto updateFoodDto , @CookieValue(name = "token") final String token)
+    public ResponseDto<FoodsDto> update(final HttpServletResponse response , @RequestBody final UpdateFoodDto updateFoodDto , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -191,37 +193,30 @@ public record FoodsController(FoodsService foodsService , UsersService usersServ
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
 
-    @RequestMapping(value = "/get-image/{ORDER_ID}",
+    @RequestMapping(value = "/get-image/{FOOD_ID}",
             produces = MediaType.IMAGE_JPEG_VALUE, method = RequestMethod.GET)
     @ResponseBody
-    public byte[] getImage(final HttpServletResponse response , @PathVariable(value = "ORDER_ID") final String orderIdStr , @CookieValue(name = "token") final String token)
+    public byte[] getImage(final HttpServletResponse response , @PathVariable(value = "FOOD_ID") final String orderIdStr)
     {
-        final Users userLogged = tokenValidation(token , usersService);
-        if (userLogged != null)
+        final Long foodId = FoodsValidation.foodIdValidation(orderIdStr);
+        if (foodId != null)
         {
-            if (userLogged.getRole().equals(Roles.ADMIN))
+            final Optional<Foods> byId = foodsService.repository().findById(foodId);
+            if (byId.isPresent())
             {
-                final Long foodId = FoodsValidation.foodIdValidation(orderIdStr);
-                if (foodId != null)
+                final ImageResult profileImage = foodsService.getImage(byId.get().getOrderImage());
+                if (profileImage != null)
                 {
-                    final Optional<Foods> byId = foodsService.repository().findById(foodId);
-                    if (byId.isPresent())
-                    {
-                        final ImageResult profileImage = foodsService.getImage(byId.get().getOrderImage());
-                        if (profileImage != null)
-                        {
-                            response.setHeader("Content-Type" , profileImage.contentType());
-                            response.setHeader("Content-Disposition" , String.format("form-data; name=\"%s\"" , profileImage.filename()));
-                            response.setHeader("Content-Length" , String.valueOf(profileImage.profilePicture().length()));
+                    response.setHeader("Content-Type" , profileImage.contentType());
+                    response.setHeader("Content-Disposition" , String.format("form-data; name=\"%s\"" , profileImage.filename()));
+                    response.setHeader("Content-Length" , String.valueOf(profileImage.profilePicture().length()));
 
-                            try
-                            {
-                                return Files.readAllBytes(profileImage.profilePicture().toPath());
-                            }
-                            catch (IOException ignored)
-                            {
-                            }
-                        }
+                    try
+                    {
+                        return Files.readAllBytes(profileImage.profilePicture().toPath());
+                    }
+                    catch (IOException ignored)
+                    {
                     }
                 }
             }

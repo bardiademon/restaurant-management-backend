@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping(value = "/orders")
 public record OrdersController(OrderService orderService , UsersService usersService , FoodsService foodsService)
@@ -31,7 +32,7 @@ public record OrdersController(OrderService orderService , UsersService usersSer
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseDto<OrderDto> addOrder(final HttpServletResponse response , @RequestBody final AddOrdersDto addOrdersDto , @CookieValue("token") final String token)
+    public ResponseDto<OrderDto> addOrder(final HttpServletResponse response , @RequestBody final AddOrdersDto addOrdersDto , @RequestHeader("token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -77,7 +78,7 @@ public record OrdersController(OrderService orderService , UsersService usersSer
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseDto<OrderDto> findById(final HttpServletResponse response , @PathVariable("ORDER_ID") final String orderIdStr , @CookieValue("token") final String token)
+    public ResponseDto<OrderDto> findById(final HttpServletResponse response , @PathVariable("ORDER_ID") final String orderIdStr , @RequestHeader("token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -102,11 +103,12 @@ public record OrdersController(OrderService orderService , UsersService usersSer
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
 
-    @GetMapping(value = "/",
+    @CrossOrigin(origins = "http://localhost:8081")
+    @GetMapping(value = {"" , "/"},
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseDto<List<OrderDto>> findById(final HttpServletResponse response , @CookieValue("token") final String token)
+    public ResponseDto<List<OrderDto>> fetchAll(final HttpServletResponse response , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -129,7 +131,7 @@ public record OrdersController(OrderService orderService , UsersService usersSer
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseDto<List<OrderDto>> findByUserId(final HttpServletResponse response , @PathVariable("USER_ID") final String userIdStr , @CookieValue("token") final String token)
+    public ResponseDto<List<OrderDto>> findByUserId(final HttpServletResponse response , @PathVariable("USER_ID") final String userIdStr , @RequestHeader("token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -158,7 +160,7 @@ public record OrdersController(OrderService orderService , UsersService usersSer
             method = RequestMethod.DELETE
     )
     @ResponseBody
-    public ResponseDto<?> delete(final HttpServletResponse response , @PathVariable("ORDER_ID") final String orderIdStr , @CookieValue("token") final String token)
+    public ResponseDto<?> delete(final HttpServletResponse response , @PathVariable("ORDER_ID") final String orderIdStr , @RequestHeader("token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)

@@ -22,6 +22,7 @@ import java.util.List;
 import static com.restaurant.management.restaurantmanagement.RestaurantManagementApplication.getJwt;
 import static com.restaurant.management.restaurantmanagement.data.validation.UsersValidation.*;
 
+@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping(value = "/users")
 public record UsersController(UsersService usersService)
@@ -70,7 +71,7 @@ public record UsersController(UsersService usersService)
              @RequestParam final String address ,
              @RequestParam(value = "profile_picture") final MultipartFile profilePicture ,
              @RequestParam(name = "role") final String roleStr ,
-             @CookieValue(name = "token") final String token)
+             @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = tokenValidation(token , usersService);
         if (userLogged != null)
@@ -103,7 +104,7 @@ public record UsersController(UsersService usersService)
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseDto<UsersDto> search(final HttpServletResponse response , @RequestParam(name = "username") final String username , @CookieValue(name = "token") final String token)
+    public ResponseDto<UsersDto> search(final HttpServletResponse response , @RequestParam(name = "username") final String username , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = tokenValidation(token , usersService);
         if (userLogged != null)
@@ -130,10 +131,10 @@ public record UsersController(UsersService usersService)
         else return new ResponseDto<>(response , Response.NOT_LOGGED_IN);
     }
 
-    @PostMapping(value = "/get-all",
+    @GetMapping(value = "/get-all",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseDto<List<UsersDto>> search(final HttpServletResponse response , @CookieValue(name = "token") final String token)
+    public ResponseDto<List<UsersDto>> search(final HttpServletResponse response , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = tokenValidation(token , usersService);
         if (userLogged != null)
@@ -187,36 +188,33 @@ public record UsersController(UsersService usersService)
     @RequestMapping(value = "/get-image/{USERNAME}",
             produces = MediaType.IMAGE_JPEG_VALUE, method = RequestMethod.GET)
     @ResponseBody
-    public byte[] getImage(final HttpServletResponse response , @PathVariable(value = "USERNAME") final String username , @CookieValue(name = "token") final String token)
+    public byte[] getImage(final HttpServletResponse response , @PathVariable(value = "USERNAME") final String username)
     {
-        final Users userLogged = tokenValidation(token , usersService);
-        if (userLogged != null)
+        if (getImageValidation(username))
         {
-            if (userLogged.getRole().equals(Roles.ADMIN))
+            final Users user = usersService.findUser(username);
+
+            if (user != null)
             {
-                if (getImageValidation(username))
+                final ImageResult profileImage = usersService.getProfileImage(user.getProfilePicture());
+                if (profileImage != null)
                 {
-                    final Users user = usersService.findUser(username);
+                    response.setHeader("Content-Type" , profileImage.contentType());
+                    response.setHeader("Content-Disposition" , String.format("form-data; name=\"%s\"" , profileImage.filename()));
+                    response.setHeader("Content-Length" , String.valueOf(profileImage.profilePicture().length()));
 
-                    final ImageResult profileImage = usersService.getProfileImage(user.getProfilePicture());
-                    if (profileImage != null)
+                    try
                     {
-                        response.setHeader("Content-Type" , profileImage.contentType());
-                        response.setHeader("Content-Disposition" , String.format("form-data; name=\"%s\"" , profileImage.filename()));
-                        response.setHeader("Content-Length" , String.valueOf(profileImage.profilePicture().length()));
-
-                        try
-                        {
-                            return Files.readAllBytes(profileImage.profilePicture().toPath());
-                        }
-                        catch (IOException ignored)
-                        {
-                        }
+                        return Files.readAllBytes(profileImage.profilePicture().toPath());
                     }
-
+                    catch (IOException ignored)
+                    {
+                    }
                 }
             }
+
         }
         return null;
     }
 }
+
