@@ -26,8 +26,6 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 
-import static com.restaurant.management.restaurantmanagement.data.validation.UsersValidation.tokenValidation;
-
 @CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping(value = "/foods")

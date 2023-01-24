@@ -28,7 +28,7 @@ public record CategoriesController(CategoriesService categoriesService , UsersSe
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseDto<Long> add(final HttpServletResponse response , @RequestParam(name = "category_name") String categoryName , @CookieValue(name = "token") final String token)
+    public ResponseDto<Long> add(final HttpServletResponse response , @RequestParam(name = "category_name") String categoryName , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -56,7 +56,7 @@ public record CategoriesController(CategoriesService categoriesService , UsersSe
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    public ResponseDto<List<String>> list(final HttpServletResponse response , @CookieValue(name = "token") final String token)
+    public ResponseDto<List<String>> list(final HttpServletResponse response , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
@@ -78,7 +78,7 @@ public record CategoriesController(CategoriesService categoriesService , UsersSe
             method = RequestMethod.DELETE
     )
     @ResponseBody
-    public ResponseDto<?> remove(final HttpServletResponse response , @PathVariable("CATEGORY_NAME") final String categoryName , @CookieValue(name = "token") final String token)
+    public ResponseDto<?> remove(final HttpServletResponse response , @PathVariable("CATEGORY_NAME") final String categoryName , @RequestHeader(name = "token") final String token)
     {
         final Users userLogged = UsersValidation.tokenValidation(token , usersService);
         if (userLogged != null)
